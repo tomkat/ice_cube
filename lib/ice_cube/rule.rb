@@ -93,7 +93,7 @@ module IceCube
 
       # CHANGE
       # Daily Rule
-      def daily(interval = 1, rules_times = [])
+      def daily(interval = 1, rule_times = [])
         DailyRule.new(interval, rule_times)
       end
 
