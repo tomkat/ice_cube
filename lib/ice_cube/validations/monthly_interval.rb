@@ -18,8 +18,13 @@ module IceCube
         :month
       end
 
+      # CHANGE
       def build_s(builder)
-        builder.base = interval == 1 ? 'Monthly' : "Every #{interval} months"
+        description = interval == 1 ? 'Monthly' : "Every #{interval} months"
+        rule_times.each do |rule_time|
+          description << " from #{ rule_time[:start_time].strftime('%H:%M:%S') } to #{ rule_time[:end_time].strftime('%H:%M:%S') } and"
+        end
+        builder.base = description.chomp(' and')
       end
 
       def build_ical(builder)

@@ -20,8 +20,13 @@ module IceCube
         :day
       end
 
+      # CHANGE
       def build_s(builder)
-        builder.base = interval == 1 ? 'Weekly' : "Every #{interval} weeks"
+        description = interval == 1 ? 'Weekly' : "Every #{interval} weeks"
+        rule_times.each do |rule_time|
+          description << " from #{ rule_time[:start_time].strftime('%H:%M:%S') } to #{ rule_time[:end_time].strftime('%H:%M:%S') } and"
+        end
+        builder.base = description.chomp(' and')
       end
 
       def build_ical(builder)

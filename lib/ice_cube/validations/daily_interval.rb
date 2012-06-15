@@ -23,8 +23,13 @@ module IceCube
         @rule_times = rule_times
       end
 
+      # CHANGE
       def build_s(builder)
-        builder.base = interval == 1 ? 'Daily' : "Every #{interval} days"
+        description = interval == 1 ? 'Daily' : "Every #{interval} days"
+        rule_times.each do |rule_time|
+          description << " from #{ rule_time[:start_time].strftime('%H:%M:%S') } to #{ rule_time[:end_time].strftime('%H:%M:%S') } and"
+        end
+        builder.base = description.chomp(' and')
       end
 
       # CHANGE
