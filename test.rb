@@ -20,7 +20,7 @@ end
 
 # The fridays in October that are on the 13th of the month
 schedule = Schedule.new(Time.new(2012, 5, 1, 8, 00))
-rule1 = Rule.weekly(1, :sunday, [{:start_time => Time.new(2012, 5, 2, 9, 00), :end_time => Time.new(2012, 5, 2, 12, 00)}, {:start_time => Time.new(2012, 5, 2, 13, 00), :end_time => Time.new(2012, 5, 2, 18, 00)}]).day(:friday)
+rule1 = Rule.monthly(1, [{:start_time => Time.new(2012, 5, 2, 9, 00), :end_time => Time.new(2012, 5, 2, 12, 00)}, {:start_time => Time.new(2012, 5, 2, 13, 00), :end_time => Time.new(2012, 5, 2, 18, 00)}]).day(:friday)
 #rule2 = Rule.weekly(1, :sunday, [{:start_time => Time.new(2012, 5, 2, 9, 50), :end_time => Time.new(2012, 5, 2, 12, 00)}]).day(:friday)
 #rule2 = Rule.weekly(1, :sunday, [{:start_time => Time.new(2012, 5, 2, 9, 00), :end_time => Time.new(2012, 5, 2, 12, 00)}]).day(:friday)
 rule2 = Rule.weekly(1, :sunday, [{:start_time => Time.new(2012, 5, 2, 9, 50), :end_time => Time.new(2012, 5, 2, 12, 00)}]).day(:thursday)
