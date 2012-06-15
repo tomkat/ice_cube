@@ -128,8 +128,8 @@ module IceCube
 
     # Get all of the occurrences from the start_time up until a
     # given Time
-    def occurrences(closing_time)
-      find_occurrences(start_time, closing_time)
+    def occurrences(closing_time, occur_event_times = nil)
+      find_occurrences(start_time, closing_time, occur_event_times)
     end
 
     # All of the occurrences
@@ -336,24 +336,55 @@ module IceCube
 
     # Find all of the occurrences for the schedule between opening_time
     # and closing_time
-    def find_occurrences(opening_time, closing_time = nil, limit = nil, &block)
+    def find_occurrences(opening_time, closing_time = nil, occur_event_times = nil, limit = nil, &block)
       reset
+      # CHANGE
       answers = []
+      res_events_times = {}
       # ensure the bounds are proper
       if end_time
         closing_time = end_time unless closing_time && closing_time < end_time
-      end
+        end
       opening_time = start_time if opening_time < start_time
       # walk up to the opening time - and off we go
       # If we have rules with counts, we need to walk from the beginning of time,
       # otherwise opening_time
       time = full_required? ? start_time : opening_time
+      # ALL RULES HAVE EVENTS_TIMES
+        # IF there is an occur_event_times THEN return event date and times ELSE return event dates only.
+      # ONLY SOME RULES HAVE EVENTS_TIMES
+        # IF there is an occur_event_times THEN return event dates for dates only ELSE event date and times. 
+      # NO RULES HAVE EVENT TIMES
+        # IF there is an occur_event_times THEN return event date only ELSE return event dates only.
+      # If there is a occurs_event_times then remove the rules for which the ocurrs event times are not relevant in calculating the next_time (event).
+      @recurrence_rules = occur_event_times.nil? ? @all_recurrence_rules : all_rules_with_valid_events_times(@all_recurrence_rules.clone, occur_event_times)
       loop do
-        res = next_time(time, closing_time)
+        # CHANGE
+        res_events_times = next_time(time, closing_time, occur_event_times)
+        res = res_events_times.nil? ? nil : res_events_times[:event_date]
         break unless res
         break if closing_time && res > closing_time
         if res >= opening_time
-          block_given? ? block.call(res) : (answers << res)
+          if block_given? 
+            block.call(res) 
+          else
+            # CHANGE 
+            # We must return both an event_date and its event_times (even if there are no event_times).
+            # If there are no rule_events_times then return an array of hashes where the event_times is an empty array.
+            # If there are rule_events_times then return an arrat of hashes where there is only one set of event_times for each event_date.
+            if res_events_times[:events_times].empty?
+              answers << res_events_times
+            else
+              res_events_times[:events_times].each do |rule_event_times|
+                answer = {}
+                answer[:event_date] = res_events_times[:event_date]
+                rule_event_times.each do |key, value|
+                  answer[key] = value 
+                end
+                answers << answer
+              end
+            end
+          end 
           break if limit && answers.length == limit
         end
         time = res + 1
@@ -362,15 +393,20 @@ module IceCube
       answers
     end
 
+    # CHANGE
     # Get the next time after (or including) a specific time
-    def next_time(time, closing_time)
+    def next_time(time, closing_time, occur_event_times = nil)
       min_time = nil
+      # CHANGE
+      events_times = []
       loop do
-        @all_recurrence_rules.each do |rule|
+        @recurrence_rules.each do |rule|
           begin
             if res = rule.next_time(time, self, closing_time)
               if min_time.nil? || res < min_time
                 min_time = res
+                # CHANGE
+                events_times = rule.get_events_times
               end
             end
           # Certain exceptions mean this rule no longer wants to play
@@ -390,7 +426,43 @@ module IceCube
         # Break, we're done
         break
       end
-      min_time
+      # CHANGE
+      {:event_date => min_time, :events_times => events_times}
+
+    end
+
+    # CHANGE
+    # We only want to return the valid set of rules and rule_times for which the occur_event_times is valid.
+    # Remove all rule_times for which the occur_event_times do not fall within. 
+    # Remove all rules where all of the rule_times have been removed because the occur_event_times does not fall within. 
+    # A rule is valid for a occur_event_times where it did not originally have any rule_times specified. This means that the full 24 hours is available on a rule for any occur_event_times.
+    # This should improve the performance of the method next_time because it will only search rules for the next event where the occur_event_times are within the rule_times.  
+    # Occur_event_times should be an array with a set of event times which containts two elements. The start and the end event times.
+    # Rule_times is a array of arrays containing multiple rule times, each array within the array containing the start and end event time. 
+    def all_rules_with_valid_rule_times(rules, occur_event_times)
+      rules.delete_if do |rule|        
+        rule.get_rule_times.empty? ? false : delete_invalid_rule_times(occur_event_times, rule.get_rule_times).empty?
+      end
+    end
+
+    #CHANGE
+    # Delete the rule times where the occur_event_times do not fall with the rule start and end time.
+    def delete_invalid_rule_times(occur_event_times, rule_times)
+      rule_times.delete_if do |rule_time|
+        !is_time_between?(occur_event_times, rule_time) 
+      end
+    end
+
+    # CHANGE
+    # Both iterations must equate to true for a valid match of time (ie. the occur start and end event times must be within the rule start and end times)
+    # It is assumed that the hash has both a key of start_time and end_time. The order of the keys is irrelevant - we just want to make sure that both times are within the rule_times.
+    def is_time_between?(occur_event_times, rule_time)
+      occur_event_times.values.all? do |occur_event_time|
+        oet = Time.new(occur_event_time.year, occur_event_time.month, occur_event_time.day, occur_event_time.hour, occur_event_time.min)
+        set = Time.new(occur_event_time.year, occur_event_time.month, occur_event_time.day, rule_time[:start_time].hour, rule_time[:start_time].min)
+        eet = Time.new(occur_event_time.year, occur_event_time.month, occur_event_time.day, rule_time[:end_time].hour, rule_time[:end_time].min)
+        oet.between?(set, eet)
+      end
     end
 
     # Return a boolean indicating if any rule needs to be run from the start of time

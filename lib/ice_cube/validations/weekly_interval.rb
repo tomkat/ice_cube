@@ -4,15 +4,17 @@ module IceCube
 
   module Validations::WeeklyInterval
 
-    def interval(interval, week_start = :sunday)
-      validations_for(:interval) << Validation.new(interval, week_start)
+    # CHANGE
+    def interval(interval, week_start = :sunday, rule_times)
+      validations_for(:interval) << Validation.new(interval, week_start, rule_times)
       clobber_base_validations(:day)
       self
     end
 
     class Validation
 
-      attr_reader :interval, :week_start
+      # CHANGE
+      attr_reader :interval, :week_start, :rule_times
 
       def type
         :day
@@ -30,13 +32,17 @@ module IceCube
         end
       end
 
+      # CHANGE
       def build_hash(builder)
         builder[:interval] = interval
+        builder[:rule_times] = rule_times 
       end
 
-      def initialize(interval, week_start)
+      # CHANGE
+      def initialize(interval, week_start, rule_times = [])
         @interval = interval
         @week_start = week_start
+        @rule_times = rule_times
       end
 
       def validate(time, schedule)

@@ -4,8 +4,8 @@ module IceCube
 
     include Validations::DailyInterval
 
-    def initialize(interval = 1)
-      interval(interval)
+    def initialize(interval = 1, rule_times)
+      interval(interval, rule_times)
       schedule_lock(:hour, :min, :sec)
     end
 

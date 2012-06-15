@@ -40,7 +40,7 @@ module IceCube
 
     # Expected to be overridden by subclasses
     def to_hash
-      nil
+      nil 
     end
 
     # Convert from a hash and create a rule
@@ -91,24 +91,28 @@ module IceCube
         HourlyRule.new(interval)
       end
 
+      # CHANGE
       # Daily Rule
-      def daily(interval = 1)
-        DailyRule.new(interval)
+      def daily(interval = 1, rules_times = [])
+        DailyRule.new(interval, rule_times)
       end
 
+      # CHANGE      
       # Weekly Rule
-      def weekly(interval = 1, week_start = :sunday)
-        WeeklyRule.new(interval, week_start)
+      def weekly( interval = 1, week_start = :sunday, rule_times = [])
+        WeeklyRule.new(interval, week_start, rule_times)
       end
 
+      # CHANGE      
       # Monthly Rule
-      def monthly(interval = 1)
-        MonthlyRule.new(interval)
+      def monthly(interval = 1, rule_times = [])
+        MonthlyRule.new(interval, rule_times)
       end
-
+      
+      # CHANGE      
       # Yearly Rule
-      def yearly(interval = 1)
-        YearlyRule.new(interval)
+      def yearly(interval = 1, rule_times = [])
+        YearlyRule.new(interval, rule_times)
       end
 
     end

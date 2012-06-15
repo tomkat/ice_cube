@@ -3,8 +3,9 @@ module IceCube
   module Validations::DailyInterval
 
     # Add a new interval validation
-    def interval(interval)
-      validations_for(:interval) << Validation.new(interval)
+    # CHANGE
+    def interval(interval, rule_times)
+      validations_for(:interval) << Validation.new(interval, rule_times)
       clobber_base_validations(:wday, :day)
       self
     end
@@ -13,18 +14,23 @@ module IceCube
     # is inside of a certain DailyInterval
     class Validation
 
-      attr_reader :interval
+      # CHANGE
+      attr_reader :interval, :rule_times
 
-      def initialize(interval)
+      # CHANGE
+      def initialize(interval, rule_times)
         @interval = interval
+        @rule_times = rule_times
       end
 
       def build_s(builder)
         builder.base = interval == 1 ? 'Daily' : "Every #{interval} days"
       end
 
+      # CHANGE
       def build_hash(builder)
         builder[:interval] = interval
+        builder[:rule_times] = rule_times 
       end
 
       def build_ical(builder)

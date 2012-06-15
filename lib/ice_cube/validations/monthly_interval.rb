@@ -2,15 +2,17 @@ module IceCube
 
   module Validations::MonthlyInterval
 
-    def interval(interval = 1)
-      validations_for(:interval) << Validation.new(interval)
+    # CHANGE
+    def interval(interval = 1, rule_times)
+      validations_for(:interval) << Validation.new(interval, rule_times)
       clobber_base_validations(:month)
       self
     end
 
     class Validation
 
-      attr_reader :interval
+      # CHANGE
+      attr_reader :interval, :rule_times
 
       def type
         :month
@@ -27,12 +29,16 @@ module IceCube
         end
       end
 
+      # CHANGE
       def build_hash(builder)
         builder[:interval] = interval
+        builder[:rule_times] = rule_times 
       end
 
-      def initialize(interval)
+      # CHANGE
+      def initialize(interval, rule_times = [])
         @interval = interval
+        @rule_times = rule_times
       end
 
       def validate(time, schedule)
