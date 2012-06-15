@@ -357,7 +357,7 @@ module IceCube
       # NO RULES HAVE EVENT TIMES
         # IF there is an occur_event_times THEN return event date only ELSE return event dates only.
       # If there is a occurs_event_times then remove the rules for which the ocurrs event times are not relevant in calculating the next_time (event).
-      @recurrence_rules = occur_event_times.nil? ? @all_recurrence_rules : all_rules_with_valid_events_times(@all_recurrence_rules.clone, occur_event_times)
+      @recurrence_rules = occur_event_times.nil? ? @all_recurrence_rules : all_rules_with_valid_rule_times(@all_recurrence_rules.clone, occur_event_times)
       loop do
         # CHANGE
         res_events_times = next_time(time, closing_time, occur_event_times)
@@ -406,7 +406,7 @@ module IceCube
               if min_time.nil? || res < min_time
                 min_time = res
                 # CHANGE
-                events_times = rule.get_events_times
+                events_times = rule.get_rule_times
               end
             end
           # Certain exceptions mean this rule no longer wants to play
